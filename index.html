@@ -1,1 +1,99 @@
-hello world
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Operating Systems Blog</title>
+
+    <!-- Theme CSS -->
+    <link href="css/base.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+</head>
+
+<body>
+<div class="container">
+<h2> Maintaining File System Consistency </h2>
+<h3 style="line-height:0em"> with our friends fsck and journaling </h3>
+<hr style="margin:2em 0 1em 0;width:70%;text-align:center">
+<p> We generally assume that computers are reliable, and that our data will persist despite a crash or sudden loss of power. This is called “consistency”—every part of our file system should reference the data that we expect it to.</p>
+
+<p>First let’s look at the process of writing to a file. The typing from your word processor gets to data structures on your disk in three steps. The data is written onto a disk block on the disk, an inode is pointed to that disk block and the bitmap is rewritten with the updated location of the file (stored in the inode). All these three steps need to happen to preserve file system consistency.</p>
+
+<p>What might happen if only one of these steps writes to disk before a crash?</p>
+
+<ul>
+	<li><i>Disk block is written to disk:</i> no inconsistency here, but our data is lonely and can’t be found!</li>
+	<li><i>Only the inode is written to disk:</i> the inode will point to an unwritten (garbage) block of data </li>
+	<li><i>Only the updated bitmap is written to disk:</i> inconsistency! There’s space here that our computer thinks is full, that’s actually empty (space leak)</li>
+</ul>
+
+<p>Now what will happen if only two of these steps write to disk?<p>
+
+<ul>
+	<li><i>Disk block + inode (no bitmap):</i> There is an inconsistency between the inode and the old version stored in the bitmap</li>
+	<li><i>Inode + bitmap (no data):</i> The metadata is consistent, and filesystem is all fine until we actually peek into the disk block which is all garbage</li>
+	<li><i>Bitmap + disk block (no inode):</i> We have no idea which file the disk block belongs to, because it’s not pointed to by any inode</li>
+</ul>
+
+<p>All these results are bad because they all result in inconsistencies in our file system! Now let’s talk about a couple ways to prevent these inconsistencies from happening.</p>
+
+<h3>Fsck: Allow the inconsistencies, fix ‘em on reboot.</h3>
+
+<p>Fsck runs before the filesystem is mounted as it’s starting back up. I’m going to divide its work into seven steps.</p>
+
+<ol>
+	<li>Fsck begins by checking the superblock to ensure that the size of the filesystem is larger than the number of allocated blocks. This ensures that the superblock isn’t corrupt, and we don’t have a data leak.</li>
+	<li>Then it moves onto free blocks. Fsck checks out all the inodes to see if they are allocated, and creates a new bitmap out of the allocated blocks.</li>
+	<li>The next step is to check the inode state. Do all of the allocated inodes have valid fields? If they don’t, fsck clears the inode and removes it from the bitmap.</li>
+	<li>Fsck then looks at inode links. It verifies the link count of the inodes by scanning through each directory tree, creating link counts. The inodes without directories are thrown into the lost and found.</li> 
+	<li>Onto a check for duplicates. If two inodes point to the same block, fsck checks to see if either inode is corrupted and if so, clears it. </li>
+	<li>Next a check for bad blocks, that is, pointers that point outside of the valid range of memory. Fsck clears these too.</li>
+	<li>And last but not least, fsck checks the directories. It takes a look at the current and parent inodes, makes sure all the referred inodes are allocated, and checks that no directory is linked to more than once. </li>
+</ol>
+
+<p>Fsck ensures metadata consistency—but believe it or not, it takes a long time to run. Especially with the ever-expanding size of disks these days! #thereisabetterway</p>
+
+<h3>Journaling: write-ahead logging</h3>
+
+<p>The high-level here is that journaling is forward-facing, and does not allow inconsistencies in the way that fsck does. The result is a lot of overhead, but also the ability to know when/where/how to fix issues after a crash. How does it work?</p>
+
+<p>Journaling records a description of every action, and stores it in a well-known disc location, also known as a log. After a crash, the system refers to the log to isolate and fix possible inconsistency. </p>
+
+<p>The file system first writes a “Once upon a time” block in the log (called TxBegin). Then the inode, bitmap and disk block data are all put into the journal (in physical journaling, the data is written exactly—Logical journaling writes a compressed version to the log). Once this is done, the data and metadata are written to the disk. This is called checkpointing. After the writing completes, the system issues a “the end” block to the log, essentially the “transaction commited” message, called TxEnd.</p>
+
+<p>Let’s go step by step here, too. </p>
+
+<ol>
+	<li>We write TxBegin to the journal.</li>
+	<li>We write our data and metadata to the journal—bitmap, inode and disk block data.</li>
+	<li>We checkpoint: writing the pending metadata and data updates to a location on the disk. Now our file system is up to date! </li>
+	<li>We issue a TxEnd block to the journal.</li>
+</ol>
+
+<p>What happens in case of a crash? If a crash occurs before TxEnd is written, then our system skips any pending updates. In redo logging, the filesystem scans the log and looks for committed transactions with a TxEnd block. It replays all of these transactions in order. This allows batched updates to the disk by buffering updates into a global transaction, then batch-writing updates to the disk based on timeout. </p>
+
+<p>What happens when the log is full? The longer the log, the longer the recovery—we don’t want to turn into fsck here—and a full log is useless. The solution is a never ending log...that is, a circular log! After a transaction is checkpointed, the filesystem frees the occupied entry in the log and reuses it. </p>
+
+<p>Journaling reduces recovery time from fsck’s <b>O(size of disk)</b> to <b>O(size of log)</b> which is much faster.</p>
+
+<p>I think it’s useful to mention some other options for journaling.<p>
+
+<ul>
+	<li><i>Metadata journaling</i> prevents doubling write traffic. It first write the datablock to the disk, then logs all metadata (and excludes the actual data block, avoiding that extra write). The logged metadata is then committed. If a crash occurs here, we end up with an orphaned data block, but no inconsistency in the system.</li>
+	<li><i>Soft updates:</i> order all writes so that on-disk structures are never inconsistent. In this case, writing the data block, then the inode, then the bitmap.</li>
+	<li><i>Copy-on-write:</i> never overwrite a file or directory in its place on the filesystem. Instead, put updates in a previously-unused location. After completion, copy file system root structure to point to the updated data. </li>
+</ul>
+
+</div>
+</body>
+</html>
