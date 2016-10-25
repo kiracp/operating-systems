@@ -11,23 +11,51 @@
 
     <title>Operating Systems Blog</title>
 
-    <!-- Theme CSS -->
-    <link href="css/base.css" rel="stylesheet">
+    
 
     <!-- Custom Fonts -->
     <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
 
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <!-- Theme CSS -->
+    <link href="css/base.css" rel="stylesheet">
+
 </head>
 
 <body>
 <div class="container">
+<div class="col-md-3">
+<h4>Operating Systems</h4>
+<ul class="side-nav" style="list-style: none;margin-left:0;padding-left:0">
+  <li><a href="overview.html">Overview</a></li>
+  <li><a href="fsck-journaling.html">Fsck and Journaling</a></li>
+  <li><a href="lfs.html">Log-structured File Systems</a></li>
+  <li><a href="distributed-systems.html">Distributed Systems</a></li>
+  <li><a href="sci.html">SCI Transactions</a></li>
+</ul>
+</div>
+
+<div class="col-md-9">
 <h2 style="margin-bottom:0;padding-bottom:0"> Maintaining File System Consistency </h2>
 <h3 style="margin-top:0;padding-top:0"> with our friends fsck and journaling </h3>
-<hr style="margin:2em 0 1em 0;width:70%;text-align:center">
-<p> We generally assume that computers are reliable, and that our data will persist despite a crash or sudden loss of power. This is called “consistency”—every part of our file system should reference the data that we expect it to.</p>
+<hr>
+<p> We generally assume that computers are reliable, and that our data will persist despite a crash or sudden loss of power. This is called <b>consistency</b>—every part of our file system should reference the data that we expect it to.</p>
 
-<p>First let’s look at the process of writing to a file. The typing from your word processor gets to data structures on your disk in three steps. The data is written onto a disk block on the disk, an inode is pointed to that disk block and the bitmap is rewritten with the updated location of the file (stored in the inode). All these three steps need to happen to preserve file system consistency.</p>
+<p>First let’s look at the process of writing to a file. The data is written onto a disk block on the disk, an inode is pointed to that disk block and the bitmap is rewritten with the updated location of the file (stored in the inode). These three steps need to happen to preserve file system consistency.</p>
+
+<figure class="figure" style="margin:auto; display:block; float:center;">
+  <img src="assets/images/write-to-disk.png" class="figure-img img-fluid rounded" alt="steps of writing to disk" style="border:1px solid #bbb;">
+  <figcaption class="figure-caption">How data moves from your keyboard to the disk.</figcaption>
+</figure>
 
 <p>What might happen if only one of these steps writes to disk before a crash?</p>
 
@@ -86,13 +114,16 @@
 
 <p>Journaling reduces recovery time from fsck’s <b>O(size of disk)</b> to <b>O(size of log)</b> which is much faster.</p>
 
-<p>I think it’s useful to mention some other options for journaling.<p>
+<p>I think it’s useful to mention some other options for journaling.</p>
 
 <ul>
 	<li><i>Metadata journaling</i> prevents doubling write traffic. It first write the datablock to the disk, then logs all metadata (and excludes the actual data block, avoiding that extra write). The logged metadata is then committed. If a crash occurs here, we end up with an orphaned data block, but no inconsistency in the system.</li>
 	<li><i>Soft updates:</i> order all writes so that on-disk structures are never inconsistent. In this case, writing the data block, then the inode, then the bitmap.</li>
 	<li><i>Copy-on-write:</i> never overwrite a file or directory in its place on the filesystem. Instead, put updates in a previously-unused location. After completion, copy file system root structure to point to the updated data. </li>
 </ul>
+
+<hr>
+</div>
 
 </div>
 </body>
