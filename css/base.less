@@ -1,0 +1,151 @@
+@body:        #333333;
+@red:         #ff5e37;
+@dark-blue:   #283442;
+@med-blue:    #485761;
+@light-blue:  #a6b8c3;
+@blue:        #3498db;
+@light-grey:  #eff3f5;
+
+@sans-serif:  'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+@serif:       'Lora', 'Times New Roman', serif;
+
+body {
+  padding: 0px;
+  font-family: @serif;
+  font-size: 17px;
+  color: @body;
+}
+.container {
+  padding: 50px 0px;
+}
+p {
+  line-height: 1.5;
+  margin: 20px 0;
+}
+p a {
+  text-decoration: underline;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: @sans-serif;
+  font-weight: 800;
+}
+a {
+  color: @body;
+}
+a:hover,
+a:focus {
+  color: @blue;
+  text-decoration: none;
+}
+a img:hover,
+a img:focus {
+  cursor: zoom-in;
+}
+blockquote {
+  color: #777777;
+  font-style: italic;
+}
+hr.small {
+  max-width: 100px;
+  margin: 15px auto;
+  border-width: 4px;
+  border-color: white;
+}
+hr {
+  border:2px solid @red;
+  margin:20px 0;
+  width:50%;
+  text-align:center;
+}
+li{
+  margin-top:.5em;
+  line-height: 1.5;
+}
+@media screen and (max-width: 600px) {
+body { padding:10px;max-width:100%}
+
+}
+.side {
+  height:100%;
+  position:relative;
+  top:0;
+  left:0;
+  display:block;
+  padding:0;
+}
+.side-nav a {
+  font-size:15px;
+  color: @body;
+}
+.side-nav li {
+  padding:3px 10px;
+}
+.side-nav li:hover {
+  background-color:@light-grey;
+}
+figcaption {
+  font-family: @sans-serif;
+  font-size:14px;
+}
+.flex-container {
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.card {
+  flex-grow: 1;
+  flex-basis:0;
+}
+.card .front {
+  margin:4px;
+  display:flex;
+  height:125px;
+  font-family: @sans-serif;
+  font-size:15px;
+  text-align:center;
+
+  align-self:center;
+  background-color:@med-blue;
+  color:white;
+}
+.card .back {
+  margin:4px;
+  height:100%;
+  font-family: @sans-serif;
+  font-size:15px;
+  padding:10px 15px;
+  text-align:center;
+  display:none;
+  flex: 1 1 auto;
+  background-color:white;
+  border: 1px solid @med-blue;
+  color:@med-blue;
+}
+
+footer {
+  background-color:@dark-blue;
+  font-family:@sans-serif;
+  text-transform:uppercase;
+  position:relative;
+  bottom:0;
+  color:@med-blue;
+  font-size:12px;
+  letter-spacing: 0.2em;
+  padding:70px;
+  margin-top:20px;
+
+}
+footer:before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 5px;
+  background: repeating-linear-gradient(to right, @blue, @blue 30px, @light-grey 30px, @light-grey 60px, @red 60px, @red 90px, @light-grey 90px, @light-grey 120px);
+}

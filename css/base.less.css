@@ -1,0 +1,139 @@
+body {
+  padding: 0px;
+  font-family: 'Lora', 'Times New Roman', serif;
+  font-size: 17px;
+  color: #333333;
+}
+.container {
+  padding: 50px 0px;
+}
+p {
+  line-height: 1.5;
+  margin: 20px 0;
+}
+p a {
+  text-decoration: underline;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 800;
+}
+a {
+  color: #333333;
+}
+a:hover,
+a:focus {
+  color: #3498db;
+  text-decoration: none;
+}
+a img:hover,
+a img:focus {
+  cursor: zoom-in;
+}
+blockquote {
+  color: #777777;
+  font-style: italic;
+}
+hr.small {
+  max-width: 100px;
+  margin: 15px auto;
+  border-width: 4px;
+  border-color: white;
+}
+hr {
+  border: 2px solid #ff5e37;
+  margin: 20px 0;
+  width: 50%;
+  text-align: center;
+}
+li {
+  margin-top: .5em;
+  line-height: 1.5;
+}
+@media screen and (max-width: 600px) {
+  body {
+    padding: 10px;
+    max-width: 100%;
+  }
+}
+.side {
+  height: 100%;
+  position: relative;
+  top: 0;
+  left: 0;
+  display: block;
+  padding: 0;
+}
+.side-nav a {
+  font-size: 15px;
+  color: #333333;
+}
+.side-nav li {
+  padding: 3px 10px;
+}
+.side-nav li:hover {
+  background-color: #eff3f5;
+}
+figcaption {
+  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+}
+.flex-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.card {
+  flex-grow: 1;
+  flex-basis: 0;
+}
+.card .front {
+  margin: 4px;
+  display: flex;
+  height: 125px;
+  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  text-align: center;
+  align-self: center;
+  background-color: #485761;
+  color: white;
+}
+.card .back {
+  margin: 4px;
+  height: 100%;
+  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  padding: 10px 15px;
+  text-align: center;
+  display: none;
+  flex: 1 1 auto;
+  background-color: white;
+  border: 1px solid #485761;
+  color: #485761;
+}
+footer {
+  background-color: #283442;
+  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  text-transform: uppercase;
+  position: relative;
+  bottom: 0;
+  color: #485761;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  padding: 70px;
+  margin-top: 20px;
+}
+footer:before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 5px;
+  background: repeating-linear-gradient(to right, #3498db, #3498db 30px, #eff3f5 30px, #eff3f5 60px, #ff5e37 60px, #ff5e37 90px, #eff3f5 90px, #eff3f5 120px);
+}

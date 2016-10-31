@@ -27,15 +27,31 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
     <!-- Theme CSS -->
-    <link href="css/base.css" rel="stylesheet">
+    <link href="css/base.less.css" rel="stylesheet">
+    <script>
+    var frontCards = document.getElementsByClassName("front");
+    var backCards = document.getElementsByClassName("back");
+
+    function frontFlip(ele) {
+      ele.style.display= 'none';
+      var nextNode = ele.nextElementSibling
+      nextNode.style.display='flex';
+    }
+    function backFlip(ele) {
+      ele.style.display= 'none';
+      var prevNode = ele.previousElementSibling;
+      prevNode.style.display = 'flex';
+    }
+    </script>
 
 </head>
 
 <body>
+
 <div class="container">
 <div class="col-md-3">
 <h4>Operating Systems</h4>
-<ul class="side-nav" style="list-style: none;margin-left:0;padding-left:0">
+<ul class="side side-nav" style="list-style: none;margin-left:0;padding-left:0">
   <li><a href="overview.html">Overview</a></li>
   <li><a href="fsck-journaling.html">Fsck and Journaling</a></li>
   <li><a href="lfs.html">Log-structured File Systems</a></li>
@@ -44,8 +60,8 @@
 </ul>
 </div>
 
-<div class="col-md-9">
-<h2 style="margin-bottom:0;padding-bottom:0"> Maintaining File System Consistency </h2>
+<div class="col-md-8">
+<h2 style="margin:0;padding:0"> Maintaining File System Consistency </h2>
 <h3 style="margin-top:0;padding-top:0"> with our friends fsck and journaling </h3>
 <hr>
 <p> We generally assume that computers are reliable, and that our data will persist despite a crash or sudden loss of power. This is called <b>consistency</b>—every part of our file system should reference the data that we expect it to.</p>
@@ -59,19 +75,37 @@
 
 <p>What might happen if only one of these steps writes to disk before a crash?</p>
 
-<ul>
-	<li><i>Disk block is written to disk:</i> no inconsistency here, but our data is lonely and can’t be found!</li>
-	<li><i>Only the inode is written to disk:</i> the inode will point to an unwritten (garbage) block of data </li>
-	<li><i>Only the updated bitmap is written to disk:</i> inconsistency! There’s space here that our computer thinks is full, that’s actually empty (space leak)</li>
-</ul>
+<div class="flex-container">
+<div class="card">
+  <div class="front" onclick="frontFlip(this)"><i>Disk block is written to disk</i></div>
+  <div class="back" onclick="backFlip(this)""><p>No inconsistency here, but our data is lonely and can’t be found!<p></div>
+</div>
+<div class="card">
+  <div class="front" onclick="frontFlip(this)"><i>Only the inode is written to disk</i></div>
+  <div class="back" onclick="backFlip(this)"><p>The inode will point to an unwritten (garbage) block of data<p></div>
+</div>
+<div class="card">
+  <div class="front" onclick="frontFlip(this)"><i>Only the updated bitmap is written to disk</i></div>
+  <div class="back" onclick="backFlip(this)"><p>Inconsistency! There’s space here that our computer thinks is full, that’s actually empty (space leak)<p></div>
+</div>
+</div>
 
 <p>Now what will happen if only two of these steps write to disk?<p>
 
-<ul>
-	<li><i>Disk block + inode (no bitmap):</i> There is an inconsistency between the inode and the old version stored in the bitmap</li>
-	<li><i>Inode + bitmap (no data):</i> The metadata is consistent, and filesystem is all fine until we actually peek into the disk block which is all garbage</li>
-	<li><i>Bitmap + disk block (no inode):</i> We have no idea which file the disk block belongs to, because it’s not pointed to by any inode</li>
-</ul>
+<div class="flex-container">
+<div class="card">
+  <div class="front" onclick="frontFlip(this)"><i>Disk block + inode (no bitmap)</i></div>
+  <div class="back" onclick="backFlip(this)""><p>There is an inconsistency between the inode and the old version stored in the bitmap.<p></div>
+</div>
+<div class="card">
+  <div class="front" onclick="frontFlip(this)"><i>Inode + bitmap (no data)</i></div>
+  <div class="back" onclick="backFlip(this)"><p>The metadata is consistent, and filesystem is all fine until we actually peek into the disk block which is all garbage.<p></div>
+</div>
+<div class="card">
+  <div class="front" onclick="frontFlip(this)"><i>Bitmap + disk block (no inode)</i></div>
+  <div class="back" onclick="backFlip(this)"><p>We have no idea which file the disk block belongs to, because it’s not pointed to by any inode.<p></div>
+</div>
+</div>
 
 <p>All these results are bad because they all result in inconsistencies in our file system! Now let’s talk about a couple ways to prevent these inconsistencies from happening.</p>
 
@@ -121,10 +155,11 @@
 	<li><i>Soft updates:</i> order all writes so that on-disk structures are never inconsistent. In this case, writing the data block, then the inode, then the bitmap.</li>
 	<li><i>Copy-on-write:</i> never overwrite a file or directory in its place on the filesystem. Instead, put updates in a previously-unused location. After completion, copy file system root structure to point to the updated data. </li>
 </ul>
-
-<hr>
+</div>
 </div>
 
-</div>
+<footer>
+<p>Operating Systems are cool</p>
+</footer>
 </body>
 </html>
